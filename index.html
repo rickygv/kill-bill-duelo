@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a0000">
+<title>Kill Bill Duelo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body{font-family:'Georgia',serif;background:#0a0a0a;min-height:100vh;display:flex;justify-content:center;color:#fff;-webkit-user-select:none;user-select:none;overflow-x:hidden}
+.game{width:100%;max-width:480px;min-height:100vh;background:linear-gradient(180deg,#1a0000 0%,#4a0000 50%,#0a0a0a 100%);padding:8px;position:relative}
+h1{text-align:center;color:#FFD700;font-size:1.6em;text-shadow:2px 2px 0 #8B0000,4px 4px 0 #000;letter-spacing:2px;margin-bottom:2px}
+.sub{text-align:center;color:#ff6666;font-size:.8em;font-style:italic;margin-bottom:8px}
+.row{display:flex;gap:6px;margin-bottom:8px}
+.btn{flex:1;padding:10px 4px;font-family:'Georgia',serif;border:2px solid #8B0000;background:#1a0000;color:#ff9999;border-radius:8px;cursor:pointer;font-weight:bold;font-size:.8em;text-transform:uppercase}
+.btn.on{background:#8B0000;color:#FFD700;border-color:#FFD700}
+.sound{flex:1;padding:8px;border:1px solid #FFD700;background:#1a0000;color:#FFD700;border-radius:6px;cursor:pointer;font-size:.75em;font-weight:bold}
+.rules{background:#1a0000;border:1px solid #8B0000;border-radius:8px;padding:8px;margin-bottom:8px;font-size:.75em}
+.rules h3{color:#FFD700;font-size:.9em;margin-bottom:4px}
+.rules ul{color:#ff9999;margin-left:14px;font-size:.7em}
+.hp-row{display:flex;gap:6px;margin-bottom:8px}
+.hp-box{flex:1;background:#1a0000;border:2px solid;border-radius:10px;padding:8px;text-align:center;position:relative}
+.hp-box.p1{border-color:#00ff00}.hp-box.p2{border-color:#ff0000}
+.hp-name{font-size:.8em;font-weight:bold;margin-bottom:4px}
+.hp-box.p1 .hp-name{color:#90EE90}.hp-box.p2 .hp-name{color:#ff6666}
+.bar{width:100%;height:16px;background:#000;border-radius:8px;overflow:hidden;border:1px solid #333;margin-bottom:4px}
+.fill{height:100%;transition:width .5s;border-radius:7px}
+.f1{background:linear-gradient(90deg,#006400,#00ff00)}.f2{background:linear-gradient(90deg,#8B0000,#ff0000)}
+.hp-txt{font-size:.75em;color:#fff;font-weight:bold}
+.badge{position:absolute;top:-6px;right:4px;background:#FFD700;color:#000;font-size:.6em;padding:1px 6px;border-radius:6px;font-weight:bold;display:none}
+.badge.show{display:block;animation:badge-pulse 1s infinite}
+@keyframes badge-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.area{background:#0a0a0a;border:2px solid #8B0000;border-radius:12px;padding:12px 8px;margin-bottom:8px;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.duel{display:flex;justify-content:space-between;align-items:center;width:100%;gap:8px}
+.wrap{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+.card{width:90px;height:135px;background:linear-gradient(135deg,#1a1a1a,#2a2a2a);border:3px solid #FFD700;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:2.2em;box-shadow:0 4px 12px rgba(0,0,0,.7);transition:transform .2s;position:relative;cursor:pointer}
+.card:active{transform:scale(.95)}
+.card.hid{background:repeating-linear-gradient(45deg,#8B0000,#8B0000 8px,#4a0000 8px,#4a0000 16px);border-color:#ff0000}
+.card.hid::after{content:'☠️';font-size:.5em}
+.cv{font-size:.4em;color:#FFD700;font-weight:bold;position:absolute;top:6px;left:6px}
+.cs{font-size:.35em}
+.vs{font-size:1.8em;color:#FFD700;font-weight:bold;text-shadow:2px 2px 4px #000;animation:vs-pulse 1s infinite}
+@keyframes vs-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.cl{font-size:.7em;color:#888}
+.res{text-align:center;font-size:1em;color:#FFD700;margin-top:8px;font-weight:bold;min-height:24px;padding:0 8px}
+.dmg{color:#ff4444;animation:shake .5s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.big{width:100%;padding:16px;font-size:1.2em;font-family:'Georgia',serif;font-weight:bold;text-transform:uppercase;border:3px solid #FFD700;border-radius:12px;cursor:pointer;margin-bottom:8px}
+.big.draw{background:linear-gradient(135deg,#8B0000,#ff0000);color:#FFD700;box-shadow:0 4px 0 #4a0000}
+.big.draw:active:not(:disabled){transform:translateY(4px);box-shadow:0 0 0 #4a0000}
+.big.draw:disabled{background:#333;color:#777;border-color:#555;box-shadow:none}
+.big.restart{background:linear-gradient(135deg,#4a0000,#8B0000);color:#FFD700;display:none}
+.info{text-align:center;color:#ff9999;font-size:.8em;margin-bottom:8px}
+.log{background:#0a0a0a;border:1px solid #8B0000;border-radius:8px;padding:8px;max-height:100px;overflow-y:auto}
+.log h3{color:#FFD700;font-size:.8em;margin-bottom:4px}
+.entry{color:#ffcccc;font-size:.7em;padding:2px 0;border-bottom:1px solid #222}
+.entry.w{color:#90EE90}.entry.l{color:#ff6666}.entry.d{color:#FFD700}
+.fx{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1000;display:none}
+.fx.show{display:block}
+.slash{position:absolute;width:100%;height:2px;background:linear-gradient(90deg,transparent,#fff,#FFD700,transparent);box-shadow:0 0 15px #FFD700;animation:slash-anim .3s ease-out forwards}
+@keyframes slash-anim{0%{width:0;left:0;opacity:1}50%{width:100%;opacity:1}100%{width:100%;left:100%;opacity:0}}
+.blood{position:absolute;width:60px;height:60px;background:radial-gradient(circle,#ff0000 0%,#8B0000 50%,transparent 70%);border-radius:50%;animation:blood-anim .5s ease-out forwards}
+@keyframes blood-anim{0%{transform:scale(0);opacity:1}100%{transform:scale(2.5);opacity:0}}
+.float{position:absolute;font-size:1.8em;animation:float-up 1s ease-out forwards;pointer-events:none;z-index:100}
+@keyframes float-up{0%{opacity:1;transform:translateY(0) scale(1)}50%{transform:translateY(-20px) scale(1.3)}100%{opacity:0;transform:translateY(-50px) scale(.5)}}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.95);display:none;justify-content:center;align-items:center;z-index:2000;padding:20px}
+.modal.show{display:flex}
+.modal-box{background:linear-gradient(135deg,#0a0a0a,#1a0000);border:4px solid #FFD700;border-radius:16px;padding:24px 16px;text-align:center;width:100%;max-width:320px;animation:modal-pop .5s}
+@keyframes modal-pop{0%{transform:scale(0) rotate(-5deg)}80%{transform:scale(1.05) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
+.modal-box h2{font-size:2.2em;color:#FFD700;margin-bottom:12px;text-shadow:2px 2px 0 #8B0000}
+.modal-box p{color:#ff9999;font-size:1em;margin-bottom:16px}
+.modal-btn{width:100%;padding:14px;font-size:1.1em;font-family:'Georgia',serif;font-weight:bold;background:linear-gradient(135deg,#8B0000,#ff0000);color:#FFD700;border:2px solid #FFD700;border-radius:10px;cursor:pointer}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#0a0a0a}::-webkit-scrollbar-thumb{background:#8B0000;border-radius:2px}
+</style>
+</head>
+<body>
+<div class="game">
+<h1>🔪 KILL BILL 🔪</h1>
+<div class="sub">Duelo de Vaqueros</div>
+<div class="row">
+<button class="sound" id="snd" onclick="toggleSound()">🔊 ON</button>
+<button class="sound" onclick="playSiren()">🚨 Sirena</button>
+<button class="sound" onclick="playKatana()">⚔️ Katana</button>
+</div>
+<div class="row">
+<button class="btn on" id="m1" onclick="setMode('1p')">🤠 1P vs CPU</button>
+<button class="btn" id="m2" onclick="setMode('2p')">👥 2 Players</button>
+</div>
+<div class="rules">
+<h3>📜 Reglas</h3>
+<ul>
+<li>Saca carta - mayor valor gana</li>
+<li>Perdedor recibe daño = diferencia</li>
+<li>1P: Toca tu carta</li>
+<li>2P: P1 toca izq, P2 toca der</li>
+<li>As=14, Rey=13, Reina=12, Jota=11</li>
+</ul>
+</div>
+<div class="hp-row">
+<div class="hp-box p1"><span class="badge" id="b1">TU TURNO</span><div class="hp-name">🤠 P1 La Novia</div><div class="bar"><div class="fill f1" id="bar1" style="width:100%"></div></div><div class="hp-txt" id="hp1">50/50</div></div>
+<div class="hp-box p2"><span class="badge" id="b2">TU TURNO</span><div class="hp-name" id="n2">💀 Forajido</div><div class="bar"><div class="fill f2" id="bar2" style="width:100%"></div></div><div class="hp-txt" id="hp2">50/50</div></div>
+</div>
+<div class="area" id="area">
+<div class="duel" id="duel" style="display:none">
+<div class="wrap">
+<div class="card hid" id="c1" onclick="action('p1')"><span class="cv" id="v1"></span><span class="cs" id="s1"></span></div>
+<div class="cl">P1 - Toca</div>
+</div>
+<div class="vs">VS</div>
+<div class="wrap">
+<div class="card hid" id="c2" onclick="action('p2')"><span class="cv" id="v2"></span><span class="cs" id="s2"></span></div>
+<div class="cl" id="l2">CPU</div>
+</div>
+</div>
+<div class="res" id="res">Toca DUELO para empezar</div>
+</div>
+<button class="big draw" id="drawBtn" onclick="startRound()">🔫 DUELO</button>
+<button class="big restart" id="restartBtn" onclick="restart()">🔄 VENGANZA</button>
+<div class="info" id="info">Cartas: 52</div>
+<div class="log"><h3>📋 Registro</h3><div id="log"></div></div>
+</div>
+<div class="fx" id="fx"></div>
+<div class="modal" id="modal">
+<div class="modal-box">
+<h2 id="mt">🏆</h2>
+<p id="mm"></p>
+<button class="modal-btn" onclick="restart()">🔄 Jugar de Nuevo</button>
+</div>
+</div>
+<script>
+const MAX=50,SUITS=['♠','♥','♦','♣'],SN={'♠':'Picas','♥':'Corazones','♦':'Diamantes','♣':'Tréboles'},VALS=[{v:2,n:'2'},{v:3,n:'3'},{v:4,n:'4'},{v:5,n:'5'},{v:6,n:'6'},{v:7,n:'7'},{v:8,n:'8'},{v:9,n:'9'},{v:10,n:'10'},{v:11,n:'J'},{v:12,n:'Q'},{v:13,n:'K'},{v:14,n:'A'}];
+let deck=[],p1=MAX,p2=MAX,mode='1p',over=false,sound=true,round=0,c1=null,c2=null,d1=false,d2=false,ctx=null;
+function mkDeck(){deck=[];SUITS.forEach(s=>VALS.forEach(v=>deck.push({...v,suit:s,suitName:SN[s],color:(s==='♥'||s==='♦')?'#ff4444':'#fff'})));shuffle()}
+function shuffle(){for(let i=deck.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}}
+function setMode(m){mode=m;document.getElementById('m1').className='btn'+(m==='1p'?' on':'');document.getElementById('m2').className='btn'+(m==='2p'?' on':'');document.getElementById('n2').textContent=m==='1p'?'💀 Forajido':'👘 P2 O-Ren';document.getElementById('l2').textContent=m==='1p'?'CPU':'P2 - Toca';restart()}
+function initAudio(){if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume()}
+function playSiren(){if(!sound)return;initAudio();let t=ctx.currentTime;[659,784,880,659].forEach((f,i)=>{let o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(f,t+i*.35);g.gain.setValueAtTime(.3,t+i*.35);g.gain.exponentialRampToValueAtTime(.01,t+i*.35+.5);o.connect(g);g.connect(ctx.destination);o.start(t+i*.35);o.stop(t+i*.35+.5)})}
+function playKatana(){if(!sound)return;initAudio();let t=ctx.currentTime,o=ctx.createOscillator(),g=ctx.createGain(),f=ctx.createBiquadFilter();o.type='sawtooth';o.frequency.setValueAtTime(200,t);o.frequency.exponentialRampToValueAtTime(2000,t+.15);f.type='highpass';f.frequency.setValueAtTime(500,t);f.frequency.exponentialRampToValueAtTime(3000,t+.15);g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.01,t+.2);o.connect(f);f.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+.2);setTimeout(()=>{let imp=ctx.createOscillator(),ig=ctx.createGain();imp.type='square';imp.frequency.setValueAtTime(800,ctx.currentTime);imp.frequency.exponentialRampToValueAtTime(100,ctx.currentTime+.1);ig.gain.setValueAtTime(.15,ctx.currentTime);ig.gain.exponentialRampToValueAtTime(.01,ctx.currentTime+.15);imp.connect(ig);ig.connect(ctx.destination);imp.start();imp.stop(ctx.currentTime+.15)},150)}
+function playGun(){if(!sound)return;initAudio();let t=ctx.currentTime,buf=ctx.createBuffer(1,ctx.sampleRate*.3,ctx.sampleRate),data=buf.getChannelData(0);for(let i=0;i<<data.length;i++)data[i]=(Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*.03));let src=ctx.createBufferSource();src.buffer=buf;let filt=ctx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=1500;let g=ctx.createGain();g.gain.setValueAtTime(.4,t);g.gain.exponentialRampToValueAtTime(.01,t+.3);src.connect(filt);filt.connect(g);g.connect(ctx.destination);src.start(t)}
+function playDmg(){if(!sound)return;initAudio();let t=ctx.currentTime,o=ctx.createOscillator(),g=ctx.createGain();o.type='sawtooth';o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(50,t+.3);g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.01,t+.3);o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+.3)}
+function playWin(){if(!sound)return;initAudio();let t=ctx.currentTime;[523,587,659,523,659].forEach((f,i)=>{let o=ctx.createOscillator(),g=ctx.createGain();o.type='triangle';o.frequency.setValueAtTime(f,t+i*.25);g.gain.setValueAtTime(.2,t+i*.25);g.gain.exponentialRampToValueAtTime(.01,t+i*.25+.3);o.connect(g);g.connect(ctx.destination);o.start(t+i*.25);o.stop(t+i*.25+.3)})}
+function toggleSound(){sound=!sound;document.getElementById('snd').textContent=sound?'🔊 ON':'🔇 OFF';if(sound)initAudio()}
+function startRound(){if(over||deck.length<<2)return;if(d1||d2)return;initAudio();playSiren();round++;d1=false;d2=false;document.getElementById('duel').style.display='flex';document.getElementById('res').textContent=mode==='2p'?'P1: Toca tu carta!':'Toca tu carta';document.getElementById('drawBtn').disabled=true;resetCard('c1');resetCard('c2');updateBadges()}
+function resetCard(id){let c=document.getElementById(id);c.className='card hid';document.getElementById(id.replace('c','v')).textContent='';document.getElementById(id.replace('c','s')).textContent=''}
+function action(p){if(over)return;if(p==='p1'&&!d1){c1=deck.pop();d1=true;showCard('c1',c1,mode==='2p');playGun();if(mode==='1p'){setTimeout(()=>{c2=deck.pop();d2=true;showCard('c2',c2,false);playKatana();setTimeout(resolve,800)},600)}else{document.getElementById('res').textContent='P2: Toca tu carta!'}}else if(p==='p2'&&mode==='2p'&&d1&&!d2){c2=deck.pop();d2=true;showCard('c2',c2,true);playKatana();setTimeout(resolve,800)}updateBadges();if(navigator.vibrate)navigator.vibrate(40)}
+function showCard(id,card,hid){let c=document.getElementById(id);c.classList.remove('hid');c.style.background=(card.suit==='♥'||card.suit==='♦')?'linear-gradient(135deg,#8B0000,#DC143C)':'linear-gradient(135deg,#2F4F4F,#696969)';document.getElementById(id.replace('c','v')).textContent=card.n;document.getElementById(id.replace('c','v')).style.color=card.color;document.getElementById(id.replace('c','s')).textContent=card.suit;document.getElementById(id.replace('c','s')).style.color=card.color}
+function updateBadges(){document.getElementById('b1').className='badge'+(!d1&&!over&&round>0?' show':'');document.getElementById('b2').className='badge'+(mode==='2p'&&d1&&!d2&&!over?' show':'')}
+function resolve(){let r=document.getElementById('res'),dmg=Math.abs(c1.v-c2.v);if(c1.v>c2.v){p2=Math.max(0,p2-dmg);r.innerHTML=`P1 GANA! <span class="dmg">-${dmg} HP</span>`;log(`R${round}: ${str(c1)} vs ${str(c2)}. P1 GANA (-${dmg})`,'w');fx('🔪','c2');blood('c2');playDmg()}else if(c2.v>c1.v){p1=Math.max(0,p1-dmg);r.innerHTML=`${mode==='1p'?'CPU':'P2'} GANA! <span class="dmg">-${dmg} HP</span>`;log(`R${round}: ${str(c1)} vs ${str(c2)}. P1 Pierde (-${dmg})`,'l');fx('💔','c1');blood('c1');playDmg()}else{r.textContent='EMPATE!';log(`R${round}: Empate ${str(c1)} vs ${str(c2)}`,'d');fx('🤝','area')}updateHP();updateInfo();if(p1<=0||p2<=0||deck.length<<2){setTimeout(endGame,1500)}else{document.getElementById('drawBtn').disabled=false;document.getElementById('drawBtn').textContent='⚔️ SIGUIENTE'}}
+function str(c){return c.n+c.suit}
+function fx(e,id){let t=document.getElementById(id),d=document.createElement('div');d.className='float';d.textContent=e;d.style.left='50%';d.style.top='50%';d.style.transform='translate(-50%,-50%)';t.appendChild(d);setTimeout(()=>d.remove(),1000)}
+function blood(id){let t=document.getElementById(id),b=document.createElement('div');b.className='blood';b.style.left='50%';b.style.top='50%';b.style.transform='translate(-50%,-50%)';t.appendChild(b);setTimeout(()=>b.remove(),500)}
+function updateHP(){document.getElementById('bar1').style.width=(p1/MAX*100)+'%';document.getElementById('bar2').style.width=(p2/MAX*100)+'%';document.getElementById('hp1').textContent=p1+'/'+MAX;document.getElementById('hp2').textContent=p2+'/'+MAX}
+function updateInfo(){document.getElementById('info').textContent='Cartas: '+deck.length+' | Ronda: '+round}
+function log(m,t){let l=document.getElementById('log'),e=document.createElement('div');e.className='entry '+t;e.textContent='• '+m;l.insertBefore(e,l.firstChild)}
+function endGame(){over=true;let m=document.getElementById('modal'),t=document.getElementById('mt'),msg=document.getElementById('mm');m.classList.add('show');if(p1<=0){t.textContent='☠️ DERROTA';msg.textContent=mode==='1p'?'El Forajido ganó...':'¡P2 (O-Ren) vencedora!'}else if(p2<=0){t.textContent='🏆 ¡VICTORIA!';msg.textContent=mode==='1p'?'¡Derrotaste al Forajido!':'¡P1 (La Novia) gana!';playWin()}else if(deck.length<<2){if(p1>p2){t.textContent='🏆 ¡VICTORIA!';msg.textContent='Por resistencia: '+p1+' vs '+p2;playWin()}else if(p2>p1){t.textContent='☠️ DERROTA';msg.textContent='Por resistencia: '+p2+' vs '+p1}else{t.textContent='🤝 EMPATE';msg.textContent='¡Duelo igualado!'}}document.getElementById('drawBtn').style.display='none';document.getElementById('restartBtn').style.display='block'}
+function restart(){p1=MAX;p2=MAX;over=false;round=0;c1=null;c2=null;d1=false;d2=false;mkDeck();updateHP();updateInfo();document.getElementById('modal').classList.remove('show');document.getElementById('duel').style.display='none';document.getElementById('res').textContent='Toca DUELO para empezar';document.getElementById('log').innerHTML='';document.getElementById('drawBtn').style.display='block';document.getElementById('drawBtn').disabled=false;document.getElementById('drawBtn').textContent='🔫 DUELO';document.getElementById('restartBtn').style.display='none';document.getElementById('b1').className='badge';document.getElementById('b2').className='badge'}
+document.addEventListener('keydown',e=>{if(over)return;if(e.code==='Space'){e.preventDefault();if(!d1&&round>0)action('p1');else if(!d1&&round===0)startRound()}if(e.code==='Enter'&&mode==='2p'){e.preventDefault();if(d1&&!d2)action('p2')}});
+let lastTouch=0;document.addEventListener('touchend',e=>{let now=Date.now();if(now-lastTouch<<300)e.preventDefault();lastTouch=now},{passive:false});
+mkDeck();updateHP();
+</script>
+</body>
+</html>
