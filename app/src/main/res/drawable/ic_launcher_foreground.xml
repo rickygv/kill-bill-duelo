@@ -1,71 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Katana icon for launcher foreground -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Fondo circular oscuro -->
-    <path
-        android:fillColor="#1A1A2E"
-        android:pathData="M54,54m-54,0a54,54 0,1 1,108 0a54,54 0,1 1,-108 0" />
+    <path android:fillColor="#1A1A2E"
+          android:pathData="M54,54m-54,0a54,54 0,1 1,108 0a54,54 0,1 1,-108 0" />
 
-    <!-- Hoja de la katana (blade) - diagonal de esquina a esquina -->
-    <path
-        android:fillColor="#C0C0C0"
-        android:strokeColor="#E8E8E8"
-        android:strokeWidth="0.5"
-        android:pathData="
-            M20,88 L22,86 L85,23 L88,20 L86,18 L83,21 L20,84 Z" />
+    <path android:fillColor="#C0C0C0"
+          android:strokeColor="#E8E8E8"
+          android:strokeWidth="0.5"
+          android:pathData="M20,88 L22,86 L85,23 L88,20 L86,18 L83,21 L20,84 Z" />
 
-    <!-- Filo brillante de la hoja -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:fillAlpha="0.7"
-        android:pathData="M21,87 L22,86 L85,23 L84,22 Z" />
+    <path android:fillColor="#FFFFFF"
+          android:fillAlpha="0.7"
+          android:pathData="M21,87 L22,86 L85,23 L84,22 Z" />
 
-    <!-- Tsuba (guarda circular) -->
-    <path
-        android:fillColor="#8B6914"
-        android:strokeColor="#FFD700"
-        android:strokeWidth="1"
-        android:pathData="M40,68 m-6,0 a6,6 0,1,0 12,0 a6,6 0,1,0 -12,0" />
+    <path android:fillColor="#8B6914"
+          android:strokeColor="#FFD700"
+          android:strokeWidth="1"
+          android:pathData="M40,68 m-6,0 a6,6 0,1,0 12,0 a6,6 0,1,0 -12,0" />
 
-    <!-- Cruz de la tsuba -->
-    <path
-        android:fillColor="#FFD700"
-        android:pathData="M34,68 L46,68 M40,62 L40,74"
-        android:strokeColor="#FFD700"
-        android:strokeWidth="1.5" />
+    <path android:fillColor="#FFD700"
+          android:strokeColor="#FFD700"
+          android:strokeWidth="1.5"
+          android:pathData="M34,68 L46,68 M40,62 L40,74" />
 
-    <!-- Mango (tsuka) - parte inferior izquierda -->
-    <path
-        android:fillColor="#4A2C0A"
-        android:strokeColor="#6B3D10"
-        android:strokeWidth="0.5"
-        android:pathData="M20,88 L24,84 L37,71 L33,67 Z" />
+    <path android:fillColor="#4A2C0A"
+          android:strokeColor="#6B3D10"
+          android:strokeWidth="0.5"
+          android:pathData="M20,88 L24,84 L37,71 L33,67 Z" />
 
-    <!-- Envuelto del mango (ito) - lineas diagonales -->
-    <path
-        android:fillColor="none"
-        android:strokeColor="#8B0000"
-        android:strokeWidth="1.2"
-        android:pathData="M22,86 L28,80 M25,83 L31,77 M28,80 L34,74 M31,77 L35,73" />
+    <path android:fillColor="#00000000"
+          android:strokeColor="#8B0000"
+          android:strokeWidth="1.2"
+          android:pathData="M22,86 L28,80 M25,83 L31,77 M28,80 L34,74 M31,77 L35,73" />
 
-    <!-- Punta de la katana (kissaki) -->
-    <path
-        android:fillColor="#E0E0E0"
-        android:pathData="M83,21 L88,20 L86,18 L84,22 Z" />
+    <path android:fillColor="#E0E0E0"
+          android:pathData="M83,21 L88,20 L86,18 L84,22 Z" />
 
-    <!-- Destellos -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:fillAlpha="0.9"
-        android:pathData="M60,48 L62,44 L64,48 L60,48 Z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:fillAlpha="0.6"
-        android:pathData="M70,38 L71,36 L72,38 L70,38 Z" />
+    <path android:fillColor="#FFFFFF"
+          android:fillAlpha="0.9"
+          android:pathData="M60,48 L62,44 L64,48 L60,48 Z" />
 
+    <path android:fillColor="#FFFFFF"
+          android:fillAlpha="0.6"
+          android:pathData="M70,38 L71,36 L72,38 L70,38 Z" />
 </vector>
