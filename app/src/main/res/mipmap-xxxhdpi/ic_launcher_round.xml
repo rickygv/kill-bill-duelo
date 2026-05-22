@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@drawable/ic_launcher_background" />
-    <foreground android:drawable="@drawable/ic_launcher_foreground" />
-</adaptive-icon>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path android:fillColor="#1A1A2E"
+          android:pathData="M0,0h48v48h-48z"/>
+    <path android:fillColor="#C0C0C0"
+          android:pathData="M8,40 L10,38 L38,10 L40,8 L38,6 L36,8 L6,36 Z"/>
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.6"
+          android:pathData="M8,40 L10,38 L38,10 L37,9 Z"/>
+    <path android:fillColor="#8B6914"
+          android:pathData="M18,30 m-4,0 a4,4 0,1,0 8,0 a4,4 0,1,0 -8,0"/>
+    <path android:fillColor="#4A2C0A"
+          android:pathData="M8,40 L11,37 L17,31 L14,28 Z"/>
+</vector>
