@@ -41,22 +41,19 @@ jobs:
           curl -L -o gradle/wrapper/gradle-wrapper.jar \
             https://github.com/gradle/gradle/raw/v8.4.0/gradle/wrapper/gradle-wrapper.jar
 
-      - name: Generate Keystore & write keystore.properties
+      - name: Generate Keystore & keystore.properties
         env:
           RAW_STORE: ${{ secrets.STORE_PASSWORD }}
           RAW_KEY:   ${{ secrets.KEY_PASSWORD }}
           RAW_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          # Limpiar whitespace oculto de los secrets
           SP=$(printf '%s' "$RAW_STORE" | tr -d '[:space:]')
           KP=$(printf '%s' "$RAW_KEY"   | tr -d '[:space:]')
           KA=$(printf '%s' "$RAW_ALIAS" | tr -d '[:space:]')
-          echo "Lengths → store:${#SP}  key:${#KP}  alias:${#KA}"
 
-          # Generar keystore con PKCS12
           mkdir -p keystore
           keytool -genkeypair \
-            -keystore keystore/release.jks \
+            -keystore "$GITHUB_WORKSPACE/keystore/release.jks" \
             -alias "$KA" \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -storetype PKCS12 \
@@ -64,16 +61,15 @@ jobs:
             -keypass "$SP" \
             -dname "CN=Kill Bill Duelo, O=Vaquero Games, C=MX" \
             -noprompt
-          echo "✅ Keystore: $(wc -c < keystore/release.jks) bytes"
+          echo "✅ Keystore: $(wc -c < $GITHUB_WORKSPACE/keystore/release.jks) bytes"
 
-          # Escribir keystore.properties que lee build.gradle
-          cat > keystore.properties <<EOF
-          storeFile=keystore/release.jks
-          storePassword=$SP
-          keyAlias=$KA
-          keyPassword=$SP
-          EOF
-          echo "✅ keystore.properties escrito"
+          # Escribir keystore.properties con ruta ABSOLUTA (evita ambigüedad relativa)
+          printf 'storeFile=%s\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+            "$GITHUB_WORKSPACE/keystore/release.jks" "$SP" "$KA" "$SP" \
+            > "$GITHUB_WORKSPACE/keystore.properties"
+
+          echo "✅ keystore.properties:"
+          cat "$GITHUB_WORKSPACE/keystore.properties" | sed 's/Password=.*/Password=***/'
 
       - name: Build Release APK
         run: ./gradlew assembleRelease --no-daemon --stacktrace
