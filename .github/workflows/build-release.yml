@@ -47,9 +47,14 @@ jobs:
           RAW_KEY:   ${{ secrets.KEY_PASSWORD }}
           RAW_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          SP=$(printf '%s' "$RAW_STORE" | tr -d '[:space:]')
-          KP=$(printf '%s' "$RAW_KEY"   | tr -d '[:space:]')
-          KA=$(printf '%s' "$RAW_ALIAS" | tr -d '[:space:]')
+          # Strip BOM (EF BB BF) + whitespace — defensa ante cualquier encoding de secret
+          SP=$(printf '%s' "$RAW_STORE" | sed 's/^\xef\xbb\xbf//' | tr -d '[:space:]')
+          KP=$(printf '%s' "$RAW_KEY"   | sed 's/^\xef\xbb\xbf//' | tr -d '[:space:]')
+          KA=$(printf '%s' "$RAW_ALIAS" | sed 's/^\xef\xbb\xbf//' | tr -d '[:space:]')
+
+          echo "→ KEY_ALIAS limpio: '$KA' (${#KA} chars)"
+          echo "→ STORE_PASSWORD:   ${#SP} chars"
+          echo "→ KEY_PASSWORD:     ${#KP} chars"
 
           mkdir -p keystore
           keytool -genkeypair \
@@ -61,18 +66,21 @@ jobs:
             -keypass "$SP" \
             -dname "CN=Kill Bill Duelo, O=Vaquero Games, C=MX" \
             -noprompt
-          echo "✅ Keystore: $(wc -c < $GITHUB_WORKSPACE/keystore/release.jks) bytes"
 
-          # Escribir keystore.properties con ruta ABSOLUTA (evita ambigüedad relativa)
+          echo "✅ Keystore: $(wc -c < $GITHUB_WORKSPACE/keystore/release.jks) bytes"
+          echo "✅ Aliases en el keystore:"
+          keytool -list -keystore "$GITHUB_WORKSPACE/keystore/release.jks" \
+            -storepass "$SP" -noprompt 2>&1 | grep -i "entry\|alias\|killbill"
+
           printf 'storeFile=%s\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
             "$GITHUB_WORKSPACE/keystore/release.jks" "$SP" "$KA" "$SP" \
             > "$GITHUB_WORKSPACE/keystore.properties"
 
           echo "✅ keystore.properties:"
-          cat "$GITHUB_WORKSPACE/keystore.properties" | sed 's/Password=.*/Password=***/'
+          sed 's/Password=.*/Password=***/' "$GITHUB_WORKSPACE/keystore.properties"
 
       - name: Build Release APK
-        run: ./gradlew assembleRelease --no-daemon --stacktrace
+        run: ./gradlew assembleRelease --no-daemon
 
       - name: Verify APK signature
         run: |
