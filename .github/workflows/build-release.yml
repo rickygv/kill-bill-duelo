@@ -43,39 +43,47 @@ jobs:
 
       - name: Generate Keystore
         env:
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEY_PASSWORD:   ${{ secrets.KEY_PASSWORD }}
-          KEY_ALIAS:      ${{ secrets.KEY_ALIAS }}
+          RAW_STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          RAW_KEY_PASSWORD:   ${{ secrets.KEY_PASSWORD }}
+          RAW_KEY_ALIAS:      ${{ secrets.KEY_ALIAS }}
         run: |
+          # Eliminar whitespace/newlines de los secrets (pueden contener \n invisible)
+          STORE_PASSWORD=$(printf '%s' "$RAW_STORE_PASSWORD" | tr -d '[:space:]')
+          KEY_PASSWORD=$(printf '%s' "$RAW_KEY_PASSWORD" | tr -d '[:space:]')
+          KEY_ALIAS=$(printf '%s' "$RAW_KEY_ALIAS" | tr -d '[:space:]')
+
+          echo "STORE_PASSWORD length: ${#STORE_PASSWORD}"
+          echo "KEY_PASSWORD length:   ${#KEY_PASSWORD}"
+          echo "KEY_ALIAS:             $KEY_ALIAS"
+
           mkdir -p keystore
           keytool -genkeypair \
             -keystore keystore/release.jks \
             -alias "$KEY_ALIAS" \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
+            -keyalg RSA -keysize 2048 -validity 10000 \
             -storetype PKCS12 \
             -storepass "$STORE_PASSWORD" \
             -keypass "$KEY_PASSWORD" \
             -dname "CN=Kill Bill Duelo, O=Vaquero Games, C=MX" \
             -noprompt
-          echo "✅ Keystore: $(wc -c < keystore/release.jks) bytes"
-          keytool -list -keystore keystore/release.jks \
-            -storepass "$STORE_PASSWORD" -noprompt 2>&1 | head -4
+
+          echo "✅ Keystore generado: $(wc -c < keystore/release.jks) bytes"
+
+          # Guardar passwords limpias como env para los siguientes steps
+          echo "STORE_PASSWORD=$STORE_PASSWORD" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=$KEY_PASSWORD"     >> $GITHUB_ENV
+          echo "KEY_ALIAS=$KEY_ALIAS"           >> $GITHUB_ENV
 
       - name: Build Release APK
         env:
-          KEYSTORE_PATH:  ${{ github.workspace }}/keystore/release.jks
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEY_ALIAS:      ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD:   ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_PATH: ${{ github.workspace }}/keystore/release.jks
         run: ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Verify APK signature
         run: |
           APK=app/build/outputs/apk/release/app-release.apk
-          echo "📦 APK size: $(ls -lh $APK | awk '{print $5}')"
-          $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose $APK 2>&1 | head -3
+          echo "📦 APK: $(ls -lh $APK | awk '{print $5}')"
+          $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose $APK 2>&1 | head -4
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
@@ -90,6 +98,3 @@ jobs:
         with:
           files: app/build/outputs/apk/release/app-release.apk
           name: "Kill Bill Duelo ${{ github.ref_name }}"
-          body: |
-            ## ⚔️ Kill Bill Duelo ${{ github.ref_name }}
-            APK firmado y listo para Play Store.
