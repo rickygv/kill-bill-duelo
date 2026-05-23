@@ -1,10 +1,9 @@
-name: 🚀 Build Release APK (Play Store)
+name: Build Release APK (Play Store)
 
 on:
   push:
-    tags:
-      - 'v*'          # Se activa al hacer: git tag v1.0 && git push --tags
-  workflow_dispatch:  # También se puede lanzar manualmente
+    tags: ['v*']
+  workflow_dispatch:
 
 jobs:
   build-release:
@@ -42,13 +41,17 @@ jobs:
           curl -L -o gradle/wrapper/gradle-wrapper.jar \
             https://github.com/gradle/gradle/raw/v8.4.0/gradle/wrapper/gradle-wrapper.jar
 
-      - name: Decode Keystore
+      - name: Restore Keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           mkdir -p keystore
-          echo "$KEYSTORE_BASE64" | base64 --decode > keystore/release.jks
-          echo "✅ Keystore restaurado ($(wc -c < keystore/release.jks) bytes)"
+          # Limpiar whitespace/newlines antes de decodificar (crítico)
+          printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > keystore/release.jks
+          echo "✅ Keystore restaurado: $(wc -c < keystore/release.jks) bytes"
+          keytool -list -keystore keystore/release.jks \
+            -storepass "${{ secrets.STORE_PASSWORD }}" \
+            -noprompt 2>&1 | head -5 || true
 
       - name: Build Release APK
         env:
@@ -58,17 +61,16 @@ jobs:
           KEY_PASSWORD:   ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease --no-daemon --stacktrace
 
-      - name: Verify APK signature
+      - name: Verify signature
         run: |
           APK=app/build/outputs/apk/release/app-release.apk
-          echo "📦 APK info:"
           ls -lh $APK
-          $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose $APK | head -5
+          $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose $APK 2>&1 | head -5
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: kill-bill-duelo-release-SIGNED
+          name: kill-bill-duelo-RELEASE-SIGNED
           path: app/build/outputs/apk/release/app-release.apk
           retention-days: 90
 
@@ -78,6 +80,3 @@ jobs:
         with:
           files: app/build/outputs/apk/release/app-release.apk
           name: "Kill Bill Duelo ${{ github.ref_name }}"
-          body: |
-            ## ⚔️ Kill Bill Duelo ${{ github.ref_name }}
-            APK firmado listo para Play Store o instalación directa.
