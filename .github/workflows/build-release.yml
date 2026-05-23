@@ -41,48 +41,47 @@ jobs:
           curl -L -o gradle/wrapper/gradle-wrapper.jar \
             https://github.com/gradle/gradle/raw/v8.4.0/gradle/wrapper/gradle-wrapper.jar
 
-      - name: Generate Keystore
+      - name: Generate Keystore & write keystore.properties
         env:
-          RAW_STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          RAW_KEY_PASSWORD:   ${{ secrets.KEY_PASSWORD }}
-          RAW_KEY_ALIAS:      ${{ secrets.KEY_ALIAS }}
+          RAW_STORE: ${{ secrets.STORE_PASSWORD }}
+          RAW_KEY:   ${{ secrets.KEY_PASSWORD }}
+          RAW_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          # Eliminar whitespace/newlines de los secrets (pueden contener \n invisible)
-          STORE_PASSWORD=$(printf '%s' "$RAW_STORE_PASSWORD" | tr -d '[:space:]')
-          KEY_PASSWORD=$(printf '%s' "$RAW_KEY_PASSWORD" | tr -d '[:space:]')
-          KEY_ALIAS=$(printf '%s' "$RAW_KEY_ALIAS" | tr -d '[:space:]')
+          # Limpiar whitespace oculto de los secrets
+          SP=$(printf '%s' "$RAW_STORE" | tr -d '[:space:]')
+          KP=$(printf '%s' "$RAW_KEY"   | tr -d '[:space:]')
+          KA=$(printf '%s' "$RAW_ALIAS" | tr -d '[:space:]')
+          echo "Lengths → store:${#SP}  key:${#KP}  alias:${#KA}"
 
-          echo "STORE_PASSWORD length: ${#STORE_PASSWORD}"
-          echo "KEY_PASSWORD length:   ${#KEY_PASSWORD}"
-          echo "KEY_ALIAS:             $KEY_ALIAS"
-
+          # Generar keystore con PKCS12
           mkdir -p keystore
           keytool -genkeypair \
             -keystore keystore/release.jks \
-            -alias "$KEY_ALIAS" \
+            -alias "$KA" \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -storetype PKCS12 \
-            -storepass "$STORE_PASSWORD" \
-            -keypass "$KEY_PASSWORD" \
+            -storepass "$SP" \
+            -keypass "$SP" \
             -dname "CN=Kill Bill Duelo, O=Vaquero Games, C=MX" \
             -noprompt
+          echo "✅ Keystore: $(wc -c < keystore/release.jks) bytes"
 
-          echo "✅ Keystore generado: $(wc -c < keystore/release.jks) bytes"
-
-          # Guardar passwords limpias como env para los siguientes steps
-          echo "STORE_PASSWORD=$STORE_PASSWORD" >> $GITHUB_ENV
-          echo "KEY_PASSWORD=$KEY_PASSWORD"     >> $GITHUB_ENV
-          echo "KEY_ALIAS=$KEY_ALIAS"           >> $GITHUB_ENV
+          # Escribir keystore.properties que lee build.gradle
+          cat > keystore.properties <<EOF
+          storeFile=keystore/release.jks
+          storePassword=$SP
+          keyAlias=$KA
+          keyPassword=$SP
+          EOF
+          echo "✅ keystore.properties escrito"
 
       - name: Build Release APK
-        env:
-          KEYSTORE_PATH: ${{ github.workspace }}/keystore/release.jks
         run: ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Verify APK signature
         run: |
           APK=app/build/outputs/apk/release/app-release.apk
-          echo "📦 APK: $(ls -lh $APK | awk '{print $5}')"
+          echo "📦 $(ls -lh $APK | awk '{print $5}')"
           $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose $APK 2>&1 | head -4
 
       - name: Upload Release APK
